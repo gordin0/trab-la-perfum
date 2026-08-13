@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Admin — Le Parfum</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body style="background:#F4F4F0;">
+
+<div id="toast-container"></div>
+
+<!-- ── Acesso restrito ── -->
+<div id="admin-gate" class="hidden" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--dark);">
+  <div style="text-align:center;color:var(--white);padding:40px;">
+    <div style="font-size:4rem;margin-bottom:16px;">🔒</div>
+    <h2 style="font-family:var(--font-serif);font-size:2rem;color:var(--gold);margin-bottom:8px;">Acesso Administrativo</h2>
+    <p style="color:rgba(245,245,240,0.6);margin-bottom:24px;">Esta área é restrita a administradores.</p>
+    <a href="../index.html" class="btn btn-gold">Voltar ao Site</a>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     LAYOUT ADMIN
+════════════════════════════════════════════════════════ -->
+<div id="admin-panel" class="admin-layout hidden">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">
+      <div class="logo">Le Parfum</div>
+      <div class="sub">Painel Administrativo</div>
+    </div>
+    <nav class="admin-nav">
+      <div class="admin-nav-item active" onclick="showSection('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="admin-nav-item" onclick="showSection('orders')">
+        <span class="nav-icon">📦</span> Pedidos
+      </div>
+      <div class="admin-nav-item" onclick="showSection('products')">
+        <span class="nav-icon">🌸</span> Produtos
+      </div>
+      <div class="admin-nav-item" onclick="showSection('clients')">
+        <span class="nav-icon">👥</span> Clientes
+      </div>
+      <div class="admin-nav-item" onclick="showSection('reports')">
+        <span class="nav-icon">📈</span> Relatórios
+      </div>
+      <div class="admin-nav-item" style="margin-top:auto;color:var(--danger);" onclick="Auth.logout()">
+        <span class="nav-icon">🚪</span> Sair
+      </div>
+    </nav>
+    <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.08);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--gold);color:var(--black);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">AD</div>
+        <div>
+          <div style="color:var(--white);font-size:0.85rem;font-weight:700;">Administrador</div>
+          <div style="color:var(--gray);font-size:0.72rem;">admin@leperfum.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h2 id="section-title">Dashboard</h2>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:0.82rem;color:var(--gray);" id="admin-date"></span>
+        <a href="../index.html" style="font-size:0.82rem;color:var(--gold);">← Ver Site</a>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="section-dashboard" class="admin-section">
+        <div class="stats-grid">
+          <div class="stat-card fade-in">
+            <div class="stat-icon gold">💰</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-revenue">R$ 0</div>
+              <div class="stat-label">Receita Total</div>
+            </div>
+          </div>
+          <div class="stat-card fade-in">
+            <div class="stat-icon blue">📦</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-orders">0</div>
+              <div class="stat-label">Total de Pedidos</div>
+            </div>
+          </div>
+          <div class="stat-card fade-in">
+            <div class="stat-icon green">👥</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-clients">0</div>
+              <div class="stat-label">Clientes Cadastrados</div>
+            </div>
+          </div>
+          <div class="stat-card fade-in">
+            <div class="stat-icon red">🌸</div>
+            <div class="stat-info">
+              <div class="stat-value" id="stat-products">0</div>
+              <div class="stat-label">Produtos no Catálogo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pedidos Recentes -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>📦 Pedidos Recentes</h3>
+            <button class="btn btn-outline" style="padding:6px 14px;font-size:0.78rem;" onclick="showSection('orders')">Ver Todos</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="recent-orders-table"></table>
+          </div>
+        </div>
+
+        <!-- Produtos Mais Vendidos -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>🏆 Produtos Mais Populares</h3>
+          </div>
+          <div id="top-products"></div>
+        </div>
+      </div>
+
+      <!-- ── PEDIDOS ── -->
+      <div id="section-orders" class="admin-section hidden">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>📦 Gestão de Pedidos</h3>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <select id="order-filter-status" class="catalog-sort" onchange="renderOrdersTable()" style="font-size:0.82rem;padding:6px 12px;">
+                <option value="">Todos os Status</option>
+                <option value="pending">Aguardando</option>
+                <option value="approved">Aprovado</option>
+                <option value="shipped">Enviado</option>
+                <option value="done">Entregue</option>
+                <option value="canceled">Cancelado</option>
+              </select>
+              <input type="text" id="order-search" class="form-control" placeholder="Buscar pedido..." style="max-width:200px;padding:6px 12px;font-size:0.82rem;" oninput="renderOrdersTable()" />
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="orders-table"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUTOS ── -->
+      <div id="section-products" class="admin-section hidden">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>🌸 Gestão de Produtos</h3>
+            <button class="btn btn-gold" style="padding:8px 16px;font-size:0.82rem;" onclick="openProductForm()">+ Novo Produto</button>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="products-table"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CLIENTES ── -->
+      <div id="section-clients" class="admin-section hidden">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3>👥 Gestão de Clientes</h3>
+            <input type="text" id="client-search" class="form-control" placeholder="Buscar cliente..." style="max-width:240px;padding:6px 12px;font-size:0.82rem;" oninput="renderClientsTable()" />
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="clients-table"></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── RELATÓRIOS ── -->
+      <div id="section-reports" class="admin-section hidden">
+        <div class="stats-grid" style="margin-bottom:24px;">
+          <div class="stat-card">
+            <div class="stat-icon gold">📊</div>
+            <div class="stat-info">
+              <div class="stat-value" id="rep-avg-ticket">R$ 0</div>
+              <div class="stat-label">Ticket Médio</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">✅</div>
+            <div class="stat-info">
+              <div class="stat-value" id="rep-done">0</div>
+              <div class="stat-label">Pedidos Entregues</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">🚚</div>
+            <div class="stat-info">
+              <div class="stat-value" id="rep-shipped">0</div>
+              <div class="stat-label">Em Trânsito</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">❌</div>
+            <div class="stat-info">
+              <div class="stat-value" id="rep-canceled">0</div>
+              <div class="stat-label">Cancelados</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>📈 Distribuição por Status</h3></div>
+          <div id="status-chart" style="padding:20px 0;"></div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header"><h3>🌸 Distribuição por Categoria</h3></div>
+          <div id="category-chart" style="padding:20px 0;"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ── Modal Produto ── -->
+<div id="product-form-modal" class="modal-overlay">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <h2 id="product-form-title">Novo Produto</h2>
+      <button class="modal-close" onclick="UI.closeModal('product-form-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pf-id" />
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Marca *</label>
+          <input type="text" id="pf-brand" class="form-control" placeholder="Ex: Chanel" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nome *</label>
+          <input type="text" id="pf-name" class="form-control" placeholder="Nome do perfume" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Preço (R$) *</label>
+          <input type="number" id="pf-price" class="form-control" placeholder="0.00" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preço Antigo (R$)</label>
+          <input type="number" id="pf-old-price" class="form-control" placeholder="0.00" step="0.01" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Categoria</label>
+          <select id="pf-category" class="form-control">
+            <option value="feminino">Feminino</option>
+            <option value="masculino">Masculino</option>
+            <option value="unissex">Unissex</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Badge</label>
+          <select id="pf-badge" class="form-control">
+            <option value="">Nenhum</option>
+            <option value="novo">Novo</option>
+            <option value="sale">Oferta</option>
+            <option value="exclusivo">Exclusivo</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Emoji do Produto</label>
+        <input type="text" id="pf-emoji" class="form-control" placeholder="Ex: 🌸" maxlength="4" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas Olfativas (separadas por vírgula)</label>
+        <input type="text" id="pf-notes" class="form-control" placeholder="Ex: Rosa, Jasmim, Sândalo" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <textarea id="pf-desc" class="form-control" rows="3" placeholder="Descrição do perfume..."></textarea>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <button class="form-submit" onclick="saveProduct()">Salvar Produto</button>
+        <button class="btn btn-outline" style="flex:1;" onclick="UI.closeModal('product-form-modal')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Detalhes do Cliente ── -->
+<div id="client-modal" class="modal-overlay">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h2>Detalhes do Cliente</h2>
+      <button class="modal-close" onclick="UI.closeModal('client-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="client-modal-body"></div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+// ── Verificar acesso admin ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  if (!State.user || State.user.role !== 'admin') {
+    document.getElementById('admin-gate').classList.remove('hidden');
+  } else {
+    document.getElementById('admin-panel').classList.remove('hidden');
+    document.getElementById('admin-date').textContent = new Date().toLocaleDateString('pt-BR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    initDashboard();
+  }
+});
+
+const sectionTitles = {
+  dashboard: '📊 Dashboard',
+  orders:    '📦 Gestão de Pedidos',
+  products:  '🌸 Gestão de Produtos',
+  clients:   '👥 Gestão de Clientes',
+  reports:   '📈 Relatórios',
+};
+
+function showSection(name) {
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.add('hidden'));
+  document.getElementById(`section-${name}`)?.classList.remove('hidden');
+  document.getElementById('section-title').textContent = sectionTitles[name] || name;
+  document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  if (name === 'orders')   renderOrdersTable();
+  if (name === 'products') renderProductsTable();
+  if (name === 'clients')  renderClientsTable();
+  if (name === 'reports')  renderReports();
+  observeFadeIn();
+}
+
+// ── Dashboard ─────────────────────────────────────────────────
+function initDashboard() {
+  const orders  = State.adminOrders;
+  const clients = State.clients;
+  const revenue = orders.filter(o => o.status !== 'canceled').reduce((s, o) => {
+    const n = parseFloat(o.total.replace(/[R$\s.]/g,'').replace(',','.'));
+    return s + (isNaN(n) ? 0 : n);
+  }, 0);
+
+  document.getElementById('stat-revenue').textContent  = UI.fmt(revenue);
+  document.getElementById('stat-orders').textContent   = orders.length;
+  document.getElementById('stat-clients').textContent  = clients.length;
+  document.getElementById('stat-products').textContent = PRODUCTS.length;
+
+  // Tabela de pedidos recentes
+  const table = document.getElementById('recent-orders-table');
+  if (table) {
+    table.innerHTML = `
+      <thead><tr>
+        <th>Pedido</th><th>Cliente</th><th>Data</th><th>Total</th><th>Status</th><th>Ações</th>
+      </tr></thead>
+      <tbody>
+        ${orders.slice(0,5).map(o => orderRow(o)).join('')}
+      </tbody>`;
+  }
+
+  // Top produtos
+  const topEl = document.getElementById('top-products');
+  if (topEl) {
+    const top = [...PRODUCTS].sort((a,b) => b.reviews - a.reviews).slice(0,5);
+    topEl.innerHTML = top.map((p, i) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--gray-light);">
+        <span style="font-size:1.4rem;width:32px;text-align:center;">${['🥇','🥈','🥉','4️⃣','5️⃣'][i]}</span>
+        <span style="font-size:1.5rem;">${p.emoji}</span>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:0.88rem;">${p.brand} — ${p.name}</div>
+          <div style="font-size:0.78rem;color:var(--gray);">${p.reviews} avaliações · ${p.category}</div>
+        </div>
+        <div style="font-family:var(--font-serif);font-weight:700;color:var(--dark);">${UI.fmt(p.price)}</div>
+      </div>`).join('');
+  }
+  observeFadeIn();
+}
+
+// ── Pedidos ───────────────────────────────────────────────────
+const statusMap = {
+  pending:  { label: 'Aguardando', cls: 'status-pending' },
+  approved: { label: 'Aprovado',   cls: 'status-approved' },
+  shipped:  { label: 'Enviado',    cls: 'status-shipped' },
+  done:     { label: 'Entregue',   cls: 'status-done' },
+  canceled: { label: 'Cancelado',  cls: 'status-canceled' },
+};
+
+function orderRow(o) {
+  const s = statusMap[o.status] || statusMap.pending;
+  return `<tr>
+    <td><strong>${o.id}</strong></td>
+    <td>${o.client}</td>
+    <td>${o.date}</td>
+    <td style="font-weight:700;">${o.total}</td>
+    <td><span class="status-badge ${s.cls}">${s.label}</span></td>
+    <td>
+      <select class="action-btn action-btn-edit" onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px 8px;font-size:0.75rem;border:1px solid var(--gray-light);border-radius:4px;cursor:pointer;">
+        <option value="pending"  ${o.status==='pending'  ?'selected':''}>Aguardando</option>
+        <option value="approved" ${o.status==='approved' ?'selected':''}>Aprovado</option>
+        <option value="shipped"  ${o.status==='shipped'  ?'selected':''}>Enviado</option>
+        <option value="done"     ${o.status==='done'     ?'selected':''}>Entregue</option>
+        <option value="canceled" ${o.status==='canceled' ?'selected':''}>Cancelado</option>
+      </select>
+    </td>
+  </tr>`;
+}
+
+function renderOrdersTable() {
+  const filter = document.getElementById('order-filter-status')?.value || '';
+  const search = document.getElementById('order-search')?.value.toLowerCase() || '';
+  let orders = State.adminOrders;
+  if (filter) orders = orders.filter(o => o.status === filter);
+  if (search) orders = orders.filter(o => o.id.toLowerCase().includes(search) || o.client.toLowerCase().includes(search));
+
+  const table = document.getElementById('orders-table');
+  if (!table) return;
+  table.innerHTML = `
+    <thead><tr>
+      <th>Pedido</th><th>Cliente</th><th>Data</th><th>Itens</th><th>Total</th><th>Pagamento</th><th>Status</th><th>Ações</th>
+    </tr></thead>
+    <tbody>
+      ${orders.map(o => {
+        const s = statusMap[o.status] || statusMap.pending;
+        return `<tr>
+          <td><strong>${o.id}</strong></td>
+          <td>${o.client}</td>
+          <td>${o.date}</td>
+          <td style="text-align:center;">${o.items}</td>
+          <td style="font-weight:700;">${o.total}</td>
+          <td>${o.payment}</td>
+          <td><span class="status-badge ${s.cls}">${s.label}</span></td>
+          <td>
+            <select class="action-btn action-btn-edit" onchange="updateOrderStatus('${o.id}', this.value)" style="padding:4px 8px;font-size:0.75rem;border:1px solid var(--gray-light);border-radius:4px;cursor:pointer;">
+              <option value="pending"  ${o.status==='pending'  ?'selected':''}>Aguardando</option>
+              <option value="approved" ${o.status==='approved' ?'selected':''}>Aprovado</option>
+              <option value="shipped"  ${o.status==='shipped'  ?'selected':''}>Enviado</option>
+              <option value="done"     ${o.status==='done'     ?'selected':''}>Entregue</option>
+              <option value="canceled" ${o.status==='canceled' ?'selected':''}>Cancelado</option>
+            </select>
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>`;
+}
+
+function updateOrderStatus(id, status) {
+  const order = State.adminOrders.find(o => o.id === id);
+  if (order) {
+    order.status = status;
+    State.save();
+    UI.toast(`Pedido ${id} atualizado para "${statusMap[status]?.label}"`, 'success');
+  }
+}
+
+// ── Produtos ──────────────────────────────────────────────────
+function renderProductsTable() {
+  const table = document.getElementById('products-table');
+  if (!table) return;
+  table.innerHTML = `
+    <thead><tr>
+      <th>Produto</th><th>Marca</th><th>Categoria</th><th>Preço</th><th>Avaliações</th><th>Badge</th><th>Ações</th>
+    </tr></thead>
+    <tbody>
+      ${PRODUCTS.map(p => `<tr>
+        <td><span style="font-size:1.2rem;margin-right:8px;">${p.emoji}</span>${p.name}</td>
+        <td>${p.brand}</td>
+        <td style="text-transform:capitalize;">${p.category}</td>
+        <td style="font-weight:700;">${UI.fmt(p.price)}</td>
+        <td style="text-align:center;">⭐ ${p.rating} (${p.reviews})</td>
+        <td>${p.badge ? `<span class="badge badge-gold" style="font-size:0.7rem;">${p.badge}</span>` : '<span style="color:var(--gray)">—</span>'}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="action-btn action-btn-edit" onclick="openProductForm(${p.id})">✏️ Editar</button>
+          <button class="action-btn action-btn-del" onclick="deleteProduct(${p.id})">🗑️</button>
+        </td>
+      </tr>`).join('')}
+    </tbody>`;
+}
+
+function openProductForm(id) {
+  const p = id ? PRODUCTS.find(x => x.id === id) : null;
+  document.getElementById('product-form-title').textContent = p ? 'Editar Produto' : 'Novo Produto';
+  document.getElementById('pf-id').value       = p ? p.id : '';
+  document.getElementById('pf-brand').value    = p ? p.brand : '';
+  document.getElementById('pf-name').value     = p ? p.name : '';
+  document.getElementById('pf-price').value    = p ? p.price : '';
+  document.getElementById('pf-old-price').value= p && p.oldPrice ? p.oldPrice : '';
+  document.getElementById('pf-category').value = p ? p.category : 'feminino';
+  document.getElementById('pf-badge').value    = p && p.badge ? p.badge : '';
+  document.getElementById('pf-emoji').value    = p ? p.emoji : '🌸';
+  document.getElementById('pf-notes').value    = p ? p.notes.join(', ') : '';
+  document.getElementById('pf-desc').value     = p ? p.desc : '';
+  UI.openModal('product-form-modal');
+}
+
+function saveProduct() {
+  const id    = document.getElementById('pf-id').value;
+  const brand = document.getElementById('pf-brand').value.trim();
+  const name  = document.getElementById('pf-name').value.trim();
+  const price = parseFloat(document.getElementById('pf-price').value);
+  const oldP  = parseFloat(document.getElementById('pf-old-price').value) || null;
+  const cat   = document.getElementById('pf-category').value;
+  const badge = document.getElementById('pf-badge').value || null;
+  const emoji = document.getElementById('pf-emoji').value || '🌸';
+  const notes = document.getElementById('pf-notes').value.split(',').map(n=>n.trim()).filter(Boolean);
+  const desc  = document.getElementById('pf-desc').value.trim();
+
+  if (!brand || !name || isNaN(price)) { UI.toast('Preencha marca, nome e preço.', 'error'); return; }
+
+  if (id) {
+    const idx = PRODUCTS.findIndex(p => p.id == id);
+    if (idx >= 0) {
+      PRODUCTS[idx] = { ...PRODUCTS[idx], brand, name, price, oldPrice: oldP, category: cat, badge, emoji, notes, desc };
+      UI.toast('Produto atualizado! ✅', 'success');
+    }
+  } else {
+    const newId = Math.max(...PRODUCTS.map(p=>p.id)) + 1;
+    PRODUCTS.push({ id: newId, brand, name, emoji, price, oldPrice: oldP, category: cat, notes, desc, badge, rating: 5, reviews: 0, ml: [50, 100] });
+    UI.toast('Produto adicionado! 🌸', 'success');
+  }
+  UI.closeModal('product-form-modal');
+  renderProductsTable();
+}
+
+function deleteProduct(id) {
+  if (!confirm('Deseja remover este produto?')) return;
+  const idx = PRODUCTS.findIndex(p => p.id === id);
+  if (idx >= 0) { PRODUCTS.splice(idx, 1); UI.toast('Produto removido.'); renderProductsTable(); }
+}
+
+// ── Clientes ──────────────────────────────────────────────────
+function renderClientsTable() {
+  const search = document.getElementById('client-search')?.value.toLowerCase() || '';
+  let clients = State.clients;
+  if (search) clients = clients.filter(c => c.name.toLowerCase().includes(search) || c.email.toLowerCase().includes(search) || (c.city||'').toLowerCase().includes(search));
+
+  const table = document.getElementById('clients-table');
+  if (!table) return;
+  table.innerHTML = `
+    <thead><tr>
+      <th>Nome</th><th>E-mail</th><th>Telefone</th><th>Cidade</th><th>Pedidos</th><th>Total Gasto</th><th>Desde</th><th>Ações</th>
+    </tr></thead>
+    <tbody>
+      ${clients.map(c => `<tr>
+        <td><strong>${c.name}</strong></td>
+        <td>${c.email}</td>
+        <td>${c.phone || '—'}</td>
+        <td>${c.city || '—'}</td>
+        <td style="text-align:center;">${c.orders}</td>
+        <td style="font-weight:700;">${UI.fmt(c.total)}</td>
+        <td>${c.since || '—'}</td>
+        <td>
+          <button class="action-btn action-btn-edit" onclick="viewClient(${c.id})">👁️ Ver</button>
+        </td>
+      </tr>`).join('')}
+    </tbody>`;
+}
+
+function viewClient(id) {
+  const c = State.clients.find(x => x.id === id);
+  if (!c) return;
+  const initials = c.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('client-modal-body').innerHTML = `
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--gold);color:var(--black);display:flex;align-items:center;justify-content:center;font-family:var(--font-serif);font-size:1.5rem;font-weight:700;margin:0 auto 12px;">${initials}</div>
+      <h3 style="font-family:var(--font-serif);font-size:1.3rem;">${c.name}</h3>
+      <p style="color:var(--gray);font-size:0.85rem;">${c.email}</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div style="background:#f5f5f0;border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-family:var(--font-serif);font-size:1.5rem;font-weight:700;color:var(--dark);">${c.orders}</div>
+        <div style="font-size:0.75rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.05em;">Pedidos</div>
+      </div>
+      <div style="background:#f5f5f0;border-radius:8px;padding:12px;text-align:center;">
+        <div style="font-family:var(--font-serif);font-size:1.2rem;font-weight:700;color:var(--dark);">${UI.fmt(c.total)}</div>
+        <div style="font-size:0.75rem;color:var(--gray);text-transform:uppercase;letter-spacing:0.05em;">Total Gasto</div>
+      </div>
+    </div>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><td style="color:var(--gray);padding:6px 0;">📞 Telefone</td><td style="font-weight:700;">${c.phone || '—'}</td></tr>
+      <tr><td style="color:var(--gray);padding:6px 0;">📍 Cidade</td><td style="font-weight:700;">${c.city || '—'}</td></tr>
+      <tr><td style="color:var(--gray);padding:6px 0;">📅 Cliente desde</td><td style="font-weight:700;">${c.since || '—'}</td></tr>
+    </table>`;
+  UI.openModal('client-modal');
+}
+
+// ── Relatórios ────────────────────────────────────────────────
+function renderReports() {
+  const orders = State.adminOrders;
+  const done     = orders.filter(o => o.status === 'done').length;
+  const shipped  = orders.filter(o => o.status === 'shipped').length;
+  const canceled = orders.filter(o => o.status === 'canceled').length;
+  const revenue  = orders.filter(o => o.status !== 'canceled').reduce((s, o) => {
+    const n = parseFloat(o.total.replace(/[R$\s.]/g,'').replace(',','.'));
+    return s + (isNaN(n) ? 0 : n);
+  }, 0);
+  const avg = orders.length > 0 ? revenue / orders.length : 0;
+
+  document.getElementById('rep-avg-ticket').textContent = UI.fmt(avg);
+  document.getElementById('rep-done').textContent       = done;
+  document.getElementById('rep-shipped').textContent    = shipped;
+  document.getElementById('rep-canceled').textContent   = canceled;
+
+  // Gráfico de barras simples por status
+  const statusData = [
+    { label: 'Aguardando', count: orders.filter(o=>o.status==='pending').length,  color: '#d68910' },
+    { label: 'Aprovado',   count: orders.filter(o=>o.status==='approved').length, color: '#1e8449' },
+    { label: 'Enviado',    count: orders.filter(o=>o.status==='shipped').length,  color: '#1a5276' },
+    { label: 'Entregue',   count: done,     color: '#27ae60' },
+    { label: 'Cancelado',  count: canceled, color: '#c0392b' },
+  ];
+  const maxCount = Math.max(...statusData.map(s=>s.count), 1);
+  document.getElementById('status-chart').innerHTML = statusData.map(s => `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+      <div style="width:100px;font-size:0.82rem;color:var(--gray);text-align:right;">${s.label}</div>
+      <div style="flex:1;background:#f0f0f0;border-radius:4px;height:28px;overflow:hidden;">
+        <div style="width:${(s.count/maxCount)*100}%;height:100%;background:${s.color};border-radius:4px;display:flex;align-items:center;padding-left:8px;transition:width 0.8s ease;">
+          <span style="color:#fff;font-size:0.78rem;font-weight:700;">${s.count}</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  // Gráfico por categoria
+  const catData = [
+    { label: '🌸 Feminino',  count: PRODUCTS.filter(p=>p.category==='feminino').length,  color: '#c9a84c' },
+    { label: '🌊 Masculino', count: PRODUCTS.filter(p=>p.category==='masculino').length, color: '#1a5276' },
+    { label: '⚖️ Unissex',   count: PRODUCTS.filter(p=>p.category==='unissex').length,   color: '#1e8449' },
+  ];
+  const maxCat = Math.max(...catData.map(c=>c.count), 1);
+  document.getElementById('category-chart').innerHTML = catData.map(c => `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+      <div style="width:100px;font-size:0.82rem;color:var(--gray);text-align:right;">${c.label}</div>
+      <div style="flex:1;background:#f0f0f0;border-radius:4px;height:28px;overflow:hidden;">
+        <div style="width:${(c.count/maxCat)*100}%;height:100%;background:${c.color};border-radius:4px;display:flex;align-items:center;padding-left:8px;transition:width 0.8s ease;">
+          <span style="color:#fff;font-size:0.78rem;font-weight:700;">${c.count} produtos</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>

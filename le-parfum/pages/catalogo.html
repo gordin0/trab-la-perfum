@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogo — Le Parfum</title>
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+  <div class="container navbar-inner">
+    <a href="../index.html" class="navbar-logo">
+      <div>
+        <span class="logo-text">Le Parfum</span>
+        <span class="logo-sub">Maison de Fragrances</span>
+      </div>
+    </a>
+    <ul class="navbar-nav">
+      <li><a href="../index.html">Início</a></li>
+      <li><a href="catalogo.html" class="active">Catálogo</a></li>
+      <li><a href="sobre.html">Sobre</a></li>
+      <li><a href="contato.html">Contato</a></li>
+    </ul>
+    <div class="navbar-actions">
+      <button class="icon-btn" onclick="UI.openModal('auth-modal')" id="auth-btn" title="Entrar">👤</button>
+      <div id="user-menu" style="display:none; align-items:center; gap:8px;">
+        <span style="color:var(--gold);font-size:0.85rem;" id="user-name"></span>
+        <button class="icon-btn" onclick="window.location.href='perfil.html'" title="Perfil">👤</button>
+        <button class="icon-btn" onclick="Auth.logout()" title="Sair">🚪</button>
+      </div>
+      <button class="icon-btn" onclick="UI.openCart()" style="position:relative;">
+        🛍️<span class="cart-count" style="display:none;">0</span>
+      </button>
+      <button class="hamburger"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Mobile Menu ── -->
+<div id="mobile-menu" class="mobile-menu">
+  <button id="mobile-menu-close" class="mobile-menu-close">✕</button>
+  <a href="../index.html">Início</a>
+  <a href="catalogo.html">Catálogo</a>
+  <a href="sobre.html">Sobre</a>
+  <a href="contato.html">Contato</a>
+</div>
+
+<!-- ── Carrinho ── -->
+<div id="cart-overlay" class="cart-overlay" onclick="UI.closeCart()"></div>
+<div id="cart-drawer" class="cart-drawer">
+  <div class="cart-header">
+    <h3>🛍️ Meu Carrinho</h3>
+    <button class="cart-close" onclick="UI.closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer">
+    <div id="cart-footer-info"></div>
+    <button class="cart-checkout-btn" onclick="window.location.href='checkout.html'">Finalizar Pedido →</button>
+    <p style="text-align:center;font-size:0.75rem;color:var(--gray);margin-top:10px;">🚚 Frete grátis acima de R$ 500</p>
+  </div>
+</div>
+
+<!-- ── Auth Modal ── -->
+<div id="auth-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Acesse sua conta</h2>
+      <button class="modal-close" onclick="UI.closeModal('auth-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <div class="modal-tab active" data-tab="login">Entrar</div>
+        <div class="modal-tab" data-tab="register">Cadastrar</div>
+      </div>
+      <div id="login-form" class="auth-form">
+        <div class="form-group"><label class="form-label">E-mail</label><input type="email" id="login-email" class="form-control" placeholder="seu@email.com" /></div>
+        <div class="form-group"><label class="form-label">Senha</label><input type="password" id="login-password" class="form-control" placeholder="••••••••" /></div>
+        <button class="form-submit" id="login-submit">Entrar</button>
+      </div>
+      <div id="register-form" class="auth-form hidden">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nome *</label><input type="text" id="reg-name" class="form-control" placeholder="Seu nome" /></div>
+          <div class="form-group"><label class="form-label">Telefone</label><input type="tel" id="reg-phone" class="form-control" placeholder="(00) 00000-0000" /></div>
+        </div>
+        <div class="form-group"><label class="form-label">E-mail *</label><input type="email" id="reg-email" class="form-control" placeholder="seu@email.com" /></div>
+        <div class="form-group"><label class="form-label">Cidade</label><input type="text" id="reg-city" class="form-control" placeholder="Sua cidade" /></div>
+        <div class="form-group"><label class="form-label">Senha *</label><input type="password" id="reg-password" class="form-control" placeholder="Mínimo 4 caracteres" /></div>
+        <button class="form-submit" id="register-submit">Criar conta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Produto ── -->
+<div id="product-modal" class="modal-overlay">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <h2 id="modal-product-name">Produto</h2>
+      <button class="modal-close" onclick="UI.closeModal('product-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-product-body"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     HERO DO CATÁLOGO
+════════════════════════════════════════════════════════ -->
+<section class="catalog-hero">
+  <div class="container">
+    <h1>Nosso Catálogo</h1>
+    <div class="gold-line"></div>
+    <p>Explore nossa coleção completa de fragrâncias premium</p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     CATÁLOGO
+════════════════════════════════════════════════════════ -->
+<section class="catalog-section">
+  <div class="container">
+    <div class="catalog-layout">
+
+      <!-- Sidebar de Filtros -->
+      <aside class="catalog-sidebar">
+        <h3 class="sidebar-title">🔍 Filtros</h3>
+
+        <div class="filter-group">
+          <div class="filter-label">Categoria</div>
+          <div class="filter-options" id="filter-categories">
+            <label class="filter-option"><input type="radio" name="cat" value="todos" checked onchange="applyFilters()"> Todos</label>
+            <label class="filter-option"><input type="radio" name="cat" value="feminino" onchange="applyFilters()"> 🌸 Feminino</label>
+            <label class="filter-option"><input type="radio" name="cat" value="masculino" onchange="applyFilters()"> 🌊 Masculino</label>
+            <label class="filter-option"><input type="radio" name="cat" value="unissex" onchange="applyFilters()"> ⚖️ Unissex</label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-label">Faixa de Preço</div>
+          <div class="price-range">
+            <input type="number" class="price-input" id="price-min" placeholder="Mín" min="0" oninput="applyFilters()" />
+            <span style="color:var(--gray)">—</span>
+            <input type="number" class="price-input" id="price-max" placeholder="Máx" min="0" oninput="applyFilters()" />
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-label">Marcas</div>
+          <div class="filter-options" id="filter-brands"></div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-label">Notas Olfativas</div>
+          <div class="filter-options">
+            <label class="filter-option"><input type="checkbox" value="floral" onchange="applyFilters()"> 🌸 Floral</label>
+            <label class="filter-option"><input type="checkbox" value="amadeirado" onchange="applyFilters()"> 🪵 Amadeirado</label>
+            <label class="filter-option"><input type="checkbox" value="oriental" onchange="applyFilters()"> 🌙 Oriental</label>
+            <label class="filter-option"><input type="checkbox" value="citrico" onchange="applyFilters()"> 🍋 Cítrico</label>
+            <label class="filter-option"><input type="checkbox" value="aquatico" onchange="applyFilters()"> 💧 Aquático</label>
+          </div>
+        </div>
+
+        <button class="btn btn-outline" style="width:100%;justify-content:center;" onclick="clearFilters()">
+          Limpar Filtros
+        </button>
+      </aside>
+
+      <!-- Área Principal -->
+      <div class="catalog-main">
+        <div class="catalog-toolbar">
+          <div class="catalog-search">
+            <input type="text" id="search-input" placeholder="Buscar perfume, marca..." oninput="applyFilters()" />
+            <button onclick="applyFilters()">🔍</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <span class="catalog-results" id="results-count">12 produtos</span>
+            <select class="catalog-sort" id="sort-select" onchange="applyFilters()">
+              <option value="default">Ordenar por</option>
+              <option value="price-asc">Menor preço</option>
+              <option value="price-desc">Maior preço</option>
+              <option value="name-asc">Nome A-Z</option>
+              <option value="rating">Melhor avaliação</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="products-grid" id="catalog-products"></div>
+
+        <div id="no-results" class="hidden" style="text-align:center;padding:60px 0;color:var(--gray);">
+          <div style="font-size:3rem;margin-bottom:12px;">🔍</div>
+          <p>Nenhum produto encontrado com os filtros selecionados.</p>
+          <button class="btn btn-outline" style="margin-top:16px;" onclick="clearFilters()">Limpar Filtros</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <p>© 2025 Le Parfum — Todos os direitos reservados.</p>
+      <a href="../index.html" style="color:var(--gold);">← Voltar ao Início</a>
+    </div>
+  </div>
+</footer>
+
+<button class="scroll-top" title="Voltar ao topo">↑</button>
+
+<script src="../js/app.js"></script>
+<script>
+// ── Filtros do Catálogo ──────────────────────────────────────
+function getFilters() {
+  const cat   = document.querySelector('input[name="cat"]:checked')?.value || 'todos';
+  const min   = parseFloat(document.getElementById('price-min').value) || 0;
+  const max   = parseFloat(document.getElementById('price-max').value) || Infinity;
+  const query = document.getElementById('search-input').value.toLowerCase().trim();
+  const sort  = document.getElementById('sort-select').value;
+  const brands = [...document.querySelectorAll('#filter-brands input:checked')].map(i => i.value);
+  return { cat, min, max, query, sort, brands };
+}
+
+function applyFilters() {
+  const { cat, min, max, query, sort, brands } = getFilters();
+  let products = [...PRODUCTS];
+
+  if (cat !== 'todos') products = products.filter(p => p.category === cat || p.badge === cat);
+  if (min > 0)         products = products.filter(p => p.price >= min);
+  if (max < Infinity)  products = products.filter(p => p.price <= max);
+  if (query)           products = products.filter(p =>
+    p.name.toLowerCase().includes(query) ||
+    p.brand.toLowerCase().includes(query) ||
+    p.notes.some(n => n.toLowerCase().includes(query))
+  );
+  if (brands.length)   products = products.filter(p => brands.includes(p.brand));
+
+  if (sort === 'price-asc')  products.sort((a,b) => a.price - b.price);
+  if (sort === 'price-desc') products.sort((a,b) => b.price - a.price);
+  if (sort === 'name-asc')   products.sort((a,b) => a.name.localeCompare(b.name));
+  if (sort === 'rating')     products.sort((a,b) => b.rating - a.rating);
+
+  const count = document.getElementById('results-count');
+  const noRes = document.getElementById('no-results');
+  const grid  = document.getElementById('catalog-products');
+
+  if (products.length === 0) {
+    grid.innerHTML = '';
+    noRes.classList.remove('hidden');
+    if (count) count.textContent = '0 produtos';
+  } else {
+    noRes.classList.add('hidden');
+    if (count) count.textContent = `${products.length} produto${products.length !== 1 ? 's' : ''}`;
+    grid.innerHTML = products.map(p => {
+      const badgeMap   = { novo: 'badge-new', sale: 'badge-sale', exclusivo: 'badge-gold' };
+      const badgeLabel = { novo: 'Novo', sale: 'Oferta', exclusivo: '★ Exclusivo' };
+      const isWished   = Wishlist.isActive(p.id);
+      const stars = '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating);
+      return `
+        <div class="product-card fade-in" data-id="${p.id}">
+          <div class="product-image">
+            <div class="product-badges">${p.badge ? `<span class="badge ${badgeMap[p.badge]}">${badgeLabel[p.badge]}</span>` : ''}</div>
+            <span class="product-emoji" style="cursor:pointer;" onclick="openProductModal(${p.id})">${p.emoji}</span>
+            <button class="product-wishlist ${isWished ? 'active' : ''}" data-id="${p.id}" onclick="Wishlist.toggle(${p.id})">${isWished ? '❤️' : '🤍'}</button>
+          </div>
+          <div class="product-info">
+            <div class="product-brand">${p.brand}</div>
+            <div class="product-name" style="cursor:pointer;" onclick="openProductModal(${p.id})">${p.name}</div>
+            <div style="color:var(--gold);font-size:0.78rem;margin-bottom:4px;">${stars} <span style="color:var(--gray)">(${p.reviews})</span></div>
+            <div class="product-notes">${p.notes.slice(0,3).join(' · ')}</div>
+            <div class="product-footer">
+              <div>
+                ${p.oldPrice ? `<span class="product-price-old">${UI.fmt(p.oldPrice)}</span>` : ''}
+                <span class="product-price">${UI.fmt(p.price)}</span>
+              </div>
+              <button class="add-to-cart-btn" onclick="Cart.add(${p.id})">+ Carrinho</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+    observeFadeIn();
+  }
+}
+
+function clearFilters() {
+  document.querySelector('input[name="cat"][value="todos"]').checked = true;
+  document.getElementById('price-min').value = '';
+  document.getElementById('price-max').value = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('sort-select').value = 'default';
+  document.querySelectorAll('#filter-brands input').forEach(i => i.checked = false);
+  applyFilters();
+}
+
+function openProductModal(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('modal-product-name').textContent = p.name;
+  const stars = '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating);
+  document.getElementById('modal-product-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+      <div style="background:linear-gradient(135deg,#f8f4ec,#ede8dc);border-radius:12px;height:220px;display:flex;align-items:center;justify-content:center;font-size:7rem;">${p.emoji}</div>
+      <div>
+        <div style="color:var(--gold);font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;">${p.brand}</div>
+        <div style="font-family:var(--font-serif);font-size:1.4rem;color:var(--dark);margin:6px 0 8px;">${p.name}</div>
+        <div style="color:var(--gold);font-size:0.85rem;margin-bottom:10px;">${stars} (${p.reviews} avaliações)</div>
+        <div style="font-family:var(--font-serif);font-size:1.6rem;font-weight:700;color:var(--dark);margin-bottom:12px;">${UI.fmt(p.price)}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+          ${p.notes.map(n => `<span class="note-tag">${n}</span>`).join('')}
+        </div>
+        <p style="font-size:0.85rem;color:var(--gray);line-height:1.7;margin-bottom:16px;">${p.desc}</p>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-bottom:8px;">Tamanho</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${p.ml.map((m,i) => `<button class="size-btn ${i===0?'selected':''}" onclick="selectSize(this,${p.id},${m})">${m}ml</button>`).join('')}
+          </div>
+        </div>
+        <button class="add-to-cart-large" onclick="Cart.add(${p.id}, window._selectedML_${p.id} || ${p.ml[0]}); UI.closeModal('product-modal')">
+          🛍️ Adicionar ao Carrinho
+        </button>
+      </div>
+    </div>`;
+  window[`_selectedML_${p.id}`] = p.ml[0];
+  UI.openModal('product-modal');
+}
+
+function selectSize(btn, productId, ml) {
+  btn.closest('div').querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  window[`_selectedML_${productId}`] = ml;
+}
+
+// ── Init ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Renderizar marcas no filtro
+  const brands = [...new Set(PRODUCTS.map(p => p.brand))].sort();
+  document.getElementById('filter-brands').innerHTML = brands.map(b => `
+    <label class="filter-option">
+      <input type="checkbox" value="${b}" onchange="applyFilters()"> ${b}
+    </label>`).join('');
+
+  // Verificar parâmetro de URL
+  const params = new URLSearchParams(window.location.search);
+  const cat = params.get('cat');
+  if (cat) {
+    const radio = document.querySelector(`input[name="cat"][value="${cat}"]`);
+    if (radio) radio.checked = true;
+  }
+
+  applyFilters();
+});
+</script>
+</body>
+</html>

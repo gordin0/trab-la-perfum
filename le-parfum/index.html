@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Le Parfum — Fragrâncias de Luxo</title>
+  <meta name="description" content="Le Parfum — A mais sofisticada loja de perfumes do Brasil. Descubra fragrâncias exclusivas das melhores marcas do mundo." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+</head>
+<body>
+
+<!-- ── Toast Container ── -->
+<div id="toast-container"></div>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+  <div class="container navbar-inner">
+    <a href="index.html" class="navbar-logo">
+      <div>
+        <span class="logo-text">Le Parfum</span>
+        <span class="logo-sub">Maison de Fragrances</span>
+      </div>
+    </a>
+
+    <ul class="navbar-nav">
+      <li><a href="index.html" class="active">Início</a></li>
+      <li><a href="pages/catalogo.html">Catálogo</a></li>
+      <li><a href="pages/sobre.html">Sobre</a></li>
+      <li><a href="pages/contato.html">Contato</a></li>
+    </ul>
+
+    <div class="navbar-actions">
+      <button class="icon-btn" onclick="UI.openModal('auth-modal')" id="auth-btn" title="Entrar / Cadastrar">
+        👤
+      </button>
+      <div id="user-menu" style="display:none; align-items:center; gap:8px;">
+        <span style="color:var(--gold);font-size:0.85rem;" id="user-name"></span>
+        <button class="icon-btn" onclick="window.location.href='pages/perfil.html'" title="Meu Perfil">👤</button>
+        <button class="icon-btn" onclick="Auth.logout()" title="Sair" style="font-size:0.9rem;">🚪</button>
+      </div>
+      <button class="icon-btn" onclick="UI.openCart()" title="Carrinho" style="position:relative;">
+        🛍️
+        <span class="cart-count" style="display:none;">0</span>
+      </button>
+      <button class="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Mobile Menu ── -->
+<div id="mobile-menu" class="mobile-menu">
+  <button id="mobile-menu-close" class="mobile-menu-close">✕</button>
+  <a href="index.html">Início</a>
+  <a href="pages/catalogo.html">Catálogo</a>
+  <a href="pages/sobre.html">Sobre</a>
+  <a href="pages/contato.html">Contato</a>
+  <a href="#" onclick="UI.openModal('auth-modal')">Entrar</a>
+</div>
+
+<!-- ── Carrinho Lateral ── -->
+<div id="cart-overlay" class="cart-overlay" onclick="UI.closeCart()"></div>
+<div id="cart-drawer" class="cart-drawer">
+  <div class="cart-header">
+    <h3>🛍️ Meu Carrinho</h3>
+    <button class="cart-close" onclick="UI.closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items"></div>
+  <div class="cart-footer">
+    <div id="cart-footer-info"></div>
+    <button class="cart-checkout-btn" onclick="window.location.href='pages/checkout.html'">
+      Finalizar Pedido →
+    </button>
+    <p style="text-align:center;font-size:0.75rem;color:var(--gray);margin-top:10px;">
+      🚚 Frete grátis em compras acima de R$ 500
+    </p>
+  </div>
+</div>
+
+<!-- ── Modal Auth ── -->
+<div id="auth-modal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Acesse sua conta</h2>
+      <button class="modal-close" onclick="UI.closeModal('auth-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-tabs">
+        <div class="modal-tab active" data-tab="login">Entrar</div>
+        <div class="modal-tab" data-tab="register">Cadastrar</div>
+      </div>
+
+      <!-- Login Form -->
+      <div id="login-form" class="auth-form">
+        <div class="form-group">
+          <label class="form-label">E-mail</label>
+          <input type="email" id="login-email" class="form-control" placeholder="seu@email.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" />
+        </div>
+        <button class="form-submit" id="login-submit">Entrar</button>
+        <p style="text-align:center;margin-top:12px;font-size:0.82rem;color:var(--gray);">
+          Acesso admin: <strong>admin@leperfum.com</strong> / <strong>admin123</strong>
+        </p>
+      </div>
+
+      <!-- Register Form -->
+      <div id="register-form" class="auth-form hidden">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nome completo *</label>
+            <input type="text" id="reg-name" class="form-control" placeholder="Seu nome" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefone</label>
+            <input type="tel" id="reg-phone" class="form-control" placeholder="(00) 00000-0000" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail *</label>
+          <input type="email" id="reg-email" class="form-control" placeholder="seu@email.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cidade</label>
+          <input type="text" id="reg-city" class="form-control" placeholder="Sua cidade" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Senha *</label>
+          <input type="password" id="reg-password" class="form-control" placeholder="Mínimo 4 caracteres" />
+        </div>
+        <button class="form-submit" id="register-submit">Criar conta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-text">
+        <span class="hero-tag">✦ Maison de Fragrances ✦</span>
+        <h1>A Arte de um<br><em>Perfume Perfeito</em></h1>
+        <p>Descubra fragrâncias exclusivas das melhores maisons do mundo. Cada gota conta uma história única, cada aroma desperta uma emoção inesquecível.</p>
+        <div class="hero-actions">
+          <a href="pages/catalogo.html" class="btn btn-gold">Explorar Catálogo</a>
+          <a href="#featured" class="btn btn-outline">Ver Destaques</a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-num">200+</div>
+            <div class="hero-stat-label">Fragrâncias</div>
+          </div>
+          <div>
+            <div class="hero-stat-num">50+</div>
+            <div class="hero-stat-label">Marcas Premium</div>
+          </div>
+          <div>
+            <div class="hero-stat-num">10k+</div>
+            <div class="hero-stat-label">Clientes</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="hero-image-circle">
+          <span class="hero-perfume-icon">🌸</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     CATEGORIAS
+════════════════════════════════════════════════════════ -->
+<section class="categories-section">
+  <div class="container">
+    <h2 class="section-title">Nossas Coleções</h2>
+    <div class="gold-line"></div>
+    <p class="section-subtitle">Encontre a fragrância perfeita para cada momento</p>
+    <div class="categories-grid" id="categories-grid"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     PRODUTOS EM DESTAQUE
+════════════════════════════════════════════════════════ -->
+<section class="featured-section" id="featured">
+  <div class="container">
+    <h2 class="section-title">Produtos em Destaque</h2>
+    <div class="gold-line"></div>
+    <p class="section-subtitle">As fragrâncias mais amadas pelos nossos clientes</p>
+    <div class="products-grid" id="featured-products"></div>
+    <div style="text-align:center;margin-top:40px;">
+      <a href="pages/catalogo.html" class="btn btn-dark">Ver Catálogo Completo →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     BANNER PROMO
+════════════════════════════════════════════════════════ -->
+<section class="promo-banner">
+  <div class="container">
+    <div class="promo-content">
+      <div>
+        <p class="promo-tag">✦ Oferta Especial ✦</p>
+        <h2 class="promo-title">Frete Grátis em<br>Compras Acima de<br><span style="color:var(--gold)">R$ 500</span></h2>
+        <p class="promo-desc">Aproveite nossa promoção especial e receba suas fragrâncias favoritas sem custo de entrega para todo o Brasil.</p>
+        <a href="pages/catalogo.html" class="btn btn-gold">Aproveitar Oferta</a>
+      </div>
+      <div class="promo-visual">🎁</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     DEPOIMENTOS
+════════════════════════════════════════════════════════ -->
+<section class="testimonials-section">
+  <div class="container">
+    <h2 class="section-title">O que dizem nossos clientes</h2>
+    <div class="gold-line"></div>
+    <p class="section-subtitle">Histórias reais de quem vive a experiência Le Parfum</p>
+    <div class="testimonials-grid">
+      <div class="testimonial-card fade-in">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Recebi meu Chanel N°5 em uma embalagem lindíssima. O atendimento foi impecável e o perfume chegou em perfeito estado. Já fiz meu segundo pedido!"</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">AS</div>
+          <div>
+            <div class="testimonial-name">Ana Silva</div>
+            <div class="testimonial-role">São Paulo, SP</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-in">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Comprei o Sauvage para o meu marido de aniversário. Ele amou! A entrega foi super rápida e o produto é 100% original. Recomendo muito!"</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">MC</div>
+          <div>
+            <div class="testimonial-name">Mariana Costa</div>
+            <div class="testimonial-role">Belo Horizonte, MG</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-in">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Finalmente encontrei o Tom Ford Oud Wood a um preço justo. A Le Parfum tem os melhores perfumes de luxo do Brasil. Minha loja favorita!"</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">JP</div>
+          <div>
+            <div class="testimonial-name">João Pereira</div>
+            <div class="testimonial-role">Curitiba, PR</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     NEWSLETTER
+════════════════════════════════════════════════════════ -->
+<section class="newsletter-section">
+  <div class="container">
+    <div class="newsletter-inner">
+      <div class="newsletter-text">
+        <h2>Receba Nossas Novidades</h2>
+        <p>Cadastre-se e fique por dentro das últimas fragrâncias e promoções exclusivas.</p>
+      </div>
+      <form class="newsletter-form" id="newsletter-form">
+        <input type="email" placeholder="Digite seu e-mail" required />
+        <button type="submit">Assinar</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Le Parfum</div>
+        <p class="footer-desc">A mais sofisticada loja de perfumes do Brasil. Trazemos as melhores fragrâncias do mundo diretamente para você, com autenticidade garantida.</p>
+        <div class="footer-social">
+          <a href="#" title="Instagram">📸</a>
+          <a href="#" title="Facebook">📘</a>
+          <a href="#" title="WhatsApp">💬</a>
+          <a href="#" title="Pinterest">📌</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Navegação</h4>
+        <ul>
+          <li><a href="index.html">Início</a></li>
+          <li><a href="pages/catalogo.html">Catálogo</a></li>
+          <li><a href="pages/sobre.html">Sobre Nós</a></li>
+          <li><a href="pages/contato.html">Contato</a></li>
+          <li><a href="pages/admin.html">Painel Admin</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Categorias</h4>
+        <ul>
+          <li><a href="pages/catalogo.html?cat=feminino">Feminino</a></li>
+          <li><a href="pages/catalogo.html?cat=masculino">Masculino</a></li>
+          <li><a href="pages/catalogo.html?cat=unissex">Unissex</a></li>
+          <li><a href="pages/catalogo.html?cat=exclusivo">Exclusivos</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Atendimento</h4>
+        <ul>
+          <li><a href="#">Política de Trocas</a></li>
+          <li><a href="#">Rastrear Pedido</a></li>
+          <li><a href="#">Frete e Entrega</a></li>
+          <li><a href="#">FAQ</a></li>
+          <li><a href="pages/contato.html">Fale Conosco</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Le Parfum — Todos os direitos reservados.</p>
+      <p>CNPJ: 00.000.000/0001-00 | Desenvolvido com ❤️</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ── Scroll to Top ── -->
+<button class="scroll-top" title="Voltar ao topo">↑</button>
+
+<script src="js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Renderizar categorias
+  const catGrid = document.getElementById('categories-grid');
+  if (catGrid) {
+    catGrid.innerHTML = CATEGORIES.map(c => `
+      <div class="category-card fade-in" onclick="window.location.href='pages/catalogo.html?cat=${c.id}'">
+        <div class="category-icon">${c.icon}</div>
+        <div class="category-name">${c.name}</div>
+        <div class="category-count">${c.count} produtos</div>
+      </div>`).join('');
+  }
+
+  // Renderizar produtos em destaque (primeiros 8)
+  ProductsUI.renderGrid(PRODUCTS.slice(0, 8), 'featured-products');
+});
+</script>
+</body>
+</html>
